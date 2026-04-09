@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+
+{% block title %}Past Work - DocPro Resource{% endblock %}
+
+{% block content %}
+<div class="container layout-dashboard" style="max-width: 1200px;">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em; margin: 0;">
+            Past Work</h1>
+        <p class="text-muted">Review and download your completed document blocks. Click a row for full details.</p>
+    </div>
+
+    <div class="card ac-theme-red-black">
+        <div class="card-header">
+            <h3>Completed Assignments</h3>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="history-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>File Name</th>
+                            <th>Page Range</th>
+                            <th>Completed On</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-container">
+                        <tr><td colspan="3" class="text-center p-4">Loading history...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="pagination-controls" style="display: none; justify-content: space-between; align-items: center; padding: 1rem; background: #f8f9fa; border-top: 1px solid #dee2e6;">
+                <div id="page-info" class="text-muted small"></div>
+                <div class="btn-group">
+                    <button id="prev-btn" class="btn btn-sm btn-outline-secondary" onclick="changePage('prev')">Previous</button>
+                    <button id="next-btn" class="btn btn-sm btn-outline-secondary" onclick="changePage('next')">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    #history-table tbody tr {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    #history-table tbody tr:hover {
+        background-color: rgba(220, 38, 38, 0.05) !important;
+    }
+
+    /* Modal Styles */
+    .detail-modal-body {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 2rem;
+    }
+
+    .page-box.completed { border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.05); }
+    .page-box.failed { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.05); }
+    .page-box.processing { border-color: #3b82f6; color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
+
+    .modal-overlay.active {
+        display: flex !important;
+    }
+
+    /* Enhanced Modal Text */
+    .detail-modal-body .info-label {
+        font-weight: 700;
+        color: #acacac;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+    }
+    
+    .detail-modal-body .info-value {
+        color: #ffffff;
+        font-size: 1.1rem;
+    }
+
+    .detail-modal-body .detail-section-title {
+        color: #dc2626;
+        border-bottom-color: #dc2626;
+        opacity: 0.8;
+    }
+</style>
+
+<div id="assignment-details-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 900px; padding: 0; background: #0a0a0a; border: 1px solid #333; overflow: hidden; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); color: #fff;">
+        <!-- Modal Top Branding Bar -->
+        <div style="height: 4px; background: #dc2626; width: 100%;"></div>
+        
+        <div style="padding: 2.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem;">
+                <div>
+                    <h2 style="margin: 0; font-size: 1.75rem; text-transform: uppercase; font-weight: 950; letter-spacing: -0.03em; color: #fff;">
+                        Assignment <span style="color:#dc2626">Audit</span> Details
+                    </h2>
+                    <p class="text-muted" style="margin: 6px 0 0 0; font-size: 0.9rem; font-weight: 500;">Full tracking for your processed pages.</p>
+                </div>
+                <button onclick="closeDetails()" class="ac-btn-sort" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 50%; color: #fff; transition: all 0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="modal-assignment-content">
+                <!-- Dynamic Content -->
+            </div>
+            
+            <div style="margin-top: 3.5rem; display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #222; padding-top: 2rem;">
+                <button onclick="closeDetails()" class="btn btn-outline-secondary" style="border-color: #333; color: #999; padding: 0.75rem 1.5rem;">Dismiss</button>
+                <button onclick="closeDetails()" class="btn btn-primary" style="background: #dc2626; border-color: #dc2626; padding: 0.75rem 2rem; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);">Close View</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const historyContainer = document.getElementById('history-container');
+    let nextUrl = null;
+    let prevUrl = null;
+
+    async function loadHistory(url = '/api/v1/processing/workspace/history/') {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to load history');
+            
+            const data = await response.json();
+            allAssignments = data.results || data;
+            
+            if (data.results) {
+                nextUrl = data.next;
+                prevUrl = data.previous;
+                document.getElementById('prev-btn').disabled = !prevUrl;
+                document.getElementById('next-btn').disabled = !nextUrl;
+                document.getElementById('pagination-controls').style.display = 'flex';
+                document.getElementById('page-info').textContent = `Total Completed Tasks: ${data.count}`;
+            }
+
+            const grouped = {};
+            allAssignments.forEach(a => {
+                const docRef = a.document_ref;
+                if (!grouped[docRef]) {
+                    grouped[docRef] = {
+                        ...a,
+                        pages: [],
+                        count: 0
+                    };
+                }
+                grouped[docRef].pages.push(a.page_number);
+                grouped[docRef].count++;
+                if (new Date(a.submitted_at) > new Date(grouped[docRef].submitted_at)) {
+                    grouped[docRef].submitted_at = a.submitted_at;
+                }
+            });
+
+            const displayList = Object.values(grouped).sort((a, b) => new Date(b.submitted_at) - new Date(a.submitted_at));
+
+            if (displayList.length === 0) {
+                historyContainer.innerHTML = `
+                    <tr><td colspan="3" class="text-center p-5 text-muted">
+                        No completed assignments found.
+                    </td></tr>`;
+                return;
+            }
+
+            historyContainer.innerHTML = displayList.map(a => {
+                const title = a.document_title || a.document_ref || "Document";
+                const sortedPages = a.pages.sort((x, y) => x - y);
+                const pageRange = sortedPages.length > 1 ? `Pages ${sortedPages[0]}-${sortedPages[sortedPages.length-1]}` : `Page ${sortedPages[0]}`;
+                const totalPages = sortedPages.length > 1 ? `(${sortedPages.length} pages)` : '';
+                const submittedDate = new Date(a.submitted_at).toLocaleString();
+                
+                return `
+                    <tr onclick="showAssignmentDetails('${a.id}')">
+                        <td>
+                            <div style="font-weight: 600;">${title}</div>
+                            <div style="font-size: 10px; color: #888;">${a.document_ref}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">${pageRange}</span>
+                            <small class="text-muted ms-1">${totalPages}</small>
+                        </td>
+                        <td class="text-muted" style="font-size: 0.875rem;">${submittedDate}</td>
+                    </tr>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('Error loading history:', error);
+            historyContainer.innerHTML = `
+                <tr><td colspan="3" class="text-center p-4 text-danger">
+                    Failed to load history. Please refresh the page.
+                </td></tr>`;
+        }
+    }
+
+    function changePage(direction) {
+        if (direction === 'next' && nextUrl) {
+            loadHistory(nextUrl);
+        } else if (direction === 'prev' && prevUrl) {
+            loadHistory(prevUrl);
+        }
+    }
+
+    function showAssignmentDetails(id) {
+        const a = allAssignments.find(item => item.id === id);
+        if (!a) return;
+
+        const modal = document.getElementById('assignment-details-modal');
+        const content = document.getElementById('modal-assignment-content');
+
+        content.innerHTML = `
+            <div class="detail-modal-body">
+                <div>
+                    <div class="detail-section-title">Submission Information</div>
+                    <div class="info-label">Document</div>
+                    <div class="info-value">${a.document_title || a.document_ref}</div>
+                    
+                    <div class="info-label">Reference</div>
+                    <div class="info-value" style="font-family: monospace; font-size: 0.9rem;">${a.document_ref}</div>
+                    
+                    <div class="info-label">Page Number</div>
+                    <div class="info-value">Page ${a.page_number}</div>
+                    
+                    <div class="info-label">Final Text Snippet</div>
+                    <div class="info-value" style="font-size: 0.85rem; max-height: 150px; overflow-y: auto; background: #111; padding: 10px; border-radius: 4px; border: 1px solid #333;">
+                        ${a.final_text || '<span class="text-muted">No text captured</span>'}
+                    </div>
+                </div>
+                <div>
+                    <div class="detail-section-title">Timestamps & Review</div>
+                    <div class="info-label">Submitted At</div>
+                    <div class="info-value">${new Date(a.submitted_at).toLocaleString()}</div>
+                    
+                    <div class="info-label">Review Status</div>
+                    <div class="info-value">
+                        <span class="badge ${a.review_status === 'APPROVED' ? 'bg-success' : (a.review_status === 'REJECTED' ? 'bg-danger' : 'bg-warning')}">
+                            ${a.review_status_display}
+                        </span>
+                    </div>
+
+                    <div class="info-label">Processing Duration</div>
+                    <div class="info-value text-primary font-weight-bold">
+                        ${a.processing_duration ? a.processing_duration : 'N/A'}
+                    </div>
+
+                    ${a.review_notes ? `
+                        <div class="info-label">Reviewer Notes</div>
+                        <div class="info-value" style="font-size: 0.9rem; color: #ffca28;">${a.review_notes}</div>
+                    ` : ''}
+
+                    <div style="margin-top: 2rem;">
+                         <a href="/workspace/${a.document_ref}/${a.page_number}/" target="_blank" class="btn btn-sm btn-outline-light">
+                            View Snapshot &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        modal.classList.add('active');
+    }
+
+    function closeDetails() {
+        document.getElementById('assignment-details-modal').classList.remove('active');
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDetails();
+    });
+
+    loadHistory();
+</script>
+{% endblock %}

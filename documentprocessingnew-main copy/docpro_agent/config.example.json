@@ -1,0 +1,18 @@
+{
+  "api_base": "http://localhost:8000/api/v1/desktop",
+  "device_id": "YOUR_DEVICE_UUID_HERE",
+  "api_token": "YOUR_API_TOKEN_HERE",
+  "download_dir": "C:\\DocPro\\Agent\\Jobs",
+  "abbyy_exe": "C:\\Program Files\\ABBYY FineReader PDF 16\\FineReader.exe",
+  "launch_mode": "auto",
+  "poll_seconds": 10,
+  "stable_seconds": 5,
+  "watcher_timeout_seconds": 3600,
+  "merge_wait_seconds": 120,
+  "allowed_extensions": [".docx", ".pdf"],
+  "open_output_folder_on_start": true,
+  "cleanup_on_success": false,
+  "use_watchdog": true,
+  "global_drop_enabled": true,
+  "global_drop_dir": "C:\\DocPro\\Agent\\Jobs"
+}

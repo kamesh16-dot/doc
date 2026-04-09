@@ -1,0 +1,8 @@
+# Build-time dependencies for DocPro Desktop Agent
+pyinstaller>=6.4.0
+requests>=2.31.0
+urllib3>=2.0.0
+certifi>=2024.1.0
+charset-normalizer>=3.0.0
+idna>=3.0
+watchdog>=4.0.0

@@ -1,0 +1,100 @@
+# ===========================================================================
+# Project requirements.txt - Curated Core Dependencies
+# This file contains the primary top-level packages for the application.
+# For a full environment freeze, see requirements-full.txt.
+# ===========================================================================
+
+# Core Django Framework
+# ---------------------------------------------------------------------------
+Django==6.0.3
+djangorestframework==3.14.0
+djangorestframework_simplejwt==5.5.1
+django-filter==25.2
+django-cors-headers==4.9.0
+django-redis==6.0.0
+whitenoise==6.11.0
+
+# Database & Storage
+# ---------------------------------------------------------------------------
+psycopg2-binary==2.9.11
+dj-database-url==3.1.0
+SQLAlchemy==2.0.47
+sqlalchemy-ext==0.3.1  # Note: SQLAlchemy transitive extensions
+
+# ASGI & WebSockets
+# ---------------------------------------------------------------------------
+channels==4.3.2
+channels_redis==4.3.0
+daphne==4.2.1
+uvicorn[standard]==0.34.0
+websockets==15.0.1
+
+# Background Processing (Celery)
+# ---------------------------------------------------------------------------
+celery==5.6.2
+redis==5.3.1
+amqp==5.3.1
+kombu==5.6.2
+billiard==4.2.4
+
+# PDF & Document Extraction
+# ---------------------------------------------------------------------------
+pypdf==5.5.0
+PyMuPDF==1.27.1
+pdfplumber==0.11.9
+pdfminer.six==20251230
+python-docx==1.2.0
+python-pptx==1.0.2
+xlsxwriter==3.2.9
+openpyxl==3.1.5
+aspose-words==26.2.0
+
+# OCR & Computer Vision
+# ---------------------------------------------------------------------------
+opencv-python==4.13.0.92
+pytesseract==0.3.13
+pillow==12.1.1
+rapidocr==3.7.0
+pyclipper==1.4.0
+shapely==2.1.2
+
+# Advanced AI & ML Frameworks
+# ---------------------------------------------------------------------------
+docling==2.70.0
+docling-core==2.70.0
+docling-ibm-models==3.12.0
+torch==2.10.0
+torchvision==0.25.0
+transformers==4.57.6
+tokenizers==0.22.2
+safetensors==0.7.0
+accelerate==1.13.0
+
+# NLP & Speech Synthesis
+# ---------------------------------------------------------------------------
+spacy==3.8.11
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
+openai==1.102.0
+edge-tts==7.2.3
+SpeechRecognition==3.14.3
+vosk==0.3.45
+
+# Data Analysis
+# ---------------------------------------------------------------------------
+numpy==2.4.3
+pandas==3.0.1
+scikit-learn==1.8.0
+scipy==1.17.0
+
+# Web Scraping & Utilities
+# ---------------------------------------------------------------------------
+beautifulsoup4==4.14.3
+requests==2.33.0
+urllib3==2.6.3
+python-dotenv==1.2.1
+pydantic==2.11.7
+PyYAML==6.0.2
+tqdm==4.67.3
+rich==14.3.3
+lxml==6.0.2
+xhtml2pdf==0.2.17
